@@ -148,3 +148,35 @@ function crop_resize_image ($gd, $cnvw, $cnvh, $reqw, $reqh, $reqx, $reqy) {
   return $resized;
 
 }
+
+function uploadS3 ($s3, $bucket, $key, $temp_path, $params) {
+
+  return $s3->create_object(
+    $bucket,
+    $key,
+    array(
+      "acl" => AmazonS3::ACL_PUBLIC,
+      "fileUpload" => $temp_path,
+      "contentType" => $params["mime_type"],
+      "headers" => array(
+        "Expires" => ($params["expires"] * 1000),
+        "Cache-Control" => "max-age={$params["expires"]}",
+      ),
+      "meta" => array(
+        "unique" => $params["unique"],
+        "md5" => $params["md5"],
+        "sha1" => $params["sha1"],
+        "original-filename" => $params["original_filename"],
+        "width" => $params["width"],
+        "height" => $params["height"],
+      ),
+    )
+  );
+
+}
+
+function s3url ($bucket, $key) {
+
+  return "http://{$bucket}.s3.amazonaws.com/{$file->key}";
+
+}

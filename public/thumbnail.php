@@ -38,6 +38,7 @@ imagejpeg($resgd, $temp_path, $quality);
 $file = new stdClass();
 
 $file->original_filename = $object->header["x-amz-meta-original-filename"];
+$file->unique = $object->header["x-amz-meta-unique"];
 
 $file->bucket = $bucket;
 
@@ -46,7 +47,7 @@ $file->height = imagesy($resgd);
 
 $file->size = filesize($temp_path);
 
-$prefix = "thumbnails/deadbeef/";
+$prefix = "thumbnails/{$file->unique}/";
 
 $extension = "jpg";
 
@@ -61,28 +62,18 @@ list ($file->width, $file->height) = $dimensions;
 $file->md5 = md5_file($temp_path);
 $file->sha1 = sha1_file($temp_path);
 
-$file->url = "http://{$bucket}.s3.amazonaws.com/{$file->key}";
+$file->url = s3url($bucket, $key);
 
-$object = $s3->create_object(
-  $bucket,
-  $file->key,
-  array(
-    "acl" => AmazonS3::ACL_PUBLIC,
-    "fileUpload" => $temp_path,
-    "contentType" => "image/jpeg",
-    "headers" => array(
-      "Expires" => ($expires * 1000),
-      "Cache-Control" => "max-age={$expires}",
-    ),
-    "meta" => array(
-      "md5" => $file->md5,
-      "sha1" => $file->sha1,
-      "original-filename" => $file->original_filename,
-      "width" => $file->width,
-      "height" => $file->height,
-    ),
-  )
-);
+$object = uploadS3($s3, $file->bucket, $file->key, $temp_path, array(
+  "unique" => $file->unique,
+  "mime_type" => "image/jpeg",
+  "expires" => $expires,
+  "md5" => $file->md5,
+  "sha1" => $file->sha1,
+  "original_filename" => $file->original_filename,
+  "width" => $file->width,
+  "height" => $file->height,
+));
 
 header("Content-type: text/javascript");
 

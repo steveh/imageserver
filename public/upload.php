@@ -49,7 +49,7 @@ foreach ($_FILES as $name => $upload) {
   $file->size = $upload["size"];
   $file->original_filename = $upload["name"];
 
-  $generated_filename = generate_filename(8);
+  $file->unique = generate_filename(8);
 
   $file->mime_type = finfo_file($finfo, $temp_path);
 
@@ -63,39 +63,29 @@ foreach ($_FILES as $name => $upload) {
     continue;
   }
 
-  $filename = "{$generated_filename}.{$extension}";
+  $filename = "{$file->unique}.{$extension}";
 
   $file->key = "{$prefix}{$filename}";
 
   $file->md5 = md5_file($temp_path);
   $file->sha1 = sha1_file($temp_path);
 
-  $file->url = "http://{$bucket}.s3.amazonaws.com/{$file->key}";
+  $file->url = s3url($bucket, $key);;
 
   $dimensions = getimagesize($temp_path);
 
   list ($file->width, $file->height) = $dimensions;
-
-  $object = $s3->create_object(
-    $bucket,
-    $file->key,
-    array(
-      "acl" => AmazonS3::ACL_PUBLIC,
-      "fileUpload" => $temp_path,
-      "contentType" => $file->mime_type,
-      "headers" => array(
-        "Expires" => ($expires * 1000),
-        "Cache-Control" => "max-age={$expires}",
-      ),
-      "meta" => array(
-        "md5" => $file->md5,
-        "sha1" => $file->sha1,
-        "original-filename" => $file->original_filename,
-        "width" => $file->width,
-        "height" => $file->height,
-      ),
-    )
-  );
+  
+  $object = uploadS3($s3, $file->bucket, $file->key, $temp_path, array(
+    "unique" => $file->unique,
+    "mime_type" => $file->mime_type,
+    "expires" => $expires,
+    "md5" => $file->md5,
+    "sha1" => $file->sha1,
+    "original_filename" => $file->original_filename,
+    "width" => $file->width,
+    "height" => $file->height,
+  ));
 
   $files[] = $file;
 
