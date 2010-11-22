@@ -70,7 +70,7 @@ foreach ($_FILES as $name => $upload) {
   $file->md5 = md5_file($temp_path);
   $file->sha1 = sha1_file($temp_path);
 
-  $file->url = s3url($bucket, $key);;
+  $file->url = s3url($file->bucket, $file->key);
 
   $dimensions = getimagesize($temp_path);
 

@@ -177,6 +177,6 @@ function uploadS3 ($s3, $bucket, $key, $temp_path, $params) {
 
 function s3url ($bucket, $key) {
 
-  return "http://{$bucket}.s3.amazonaws.com/{$file->key}";
+  return "http://{$bucket}.s3.amazonaws.com/{$key}";
 
 }

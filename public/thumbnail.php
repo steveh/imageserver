@@ -62,7 +62,7 @@ list ($file->width, $file->height) = $dimensions;
 $file->md5 = md5_file($temp_path);
 $file->sha1 = sha1_file($temp_path);
 
-$file->url = s3url($bucket, $key);
+$file->url = s3url($file->bucket, $file->key);
 
 $object = uploadS3($s3, $file->bucket, $file->key, $temp_path, array(
   "unique" => $file->unique,
